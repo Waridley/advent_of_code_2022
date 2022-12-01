@@ -1,8 +1,18 @@
 use anyhow::Result;
-use waridley_aoc_2022::day_2::*;
 
 fn main() -> Result<()> {
-    let result = eval_part_1("day_2")?;
+    let result = eval_part_1("day_1")?;
     println!("{result}");
     Ok(())
+}
+
+pub fn eval_part_1(_file: &str) -> Result<String> {
+    todo!()
+}
+
+#[cfg(test)]
+#[test]
+fn part_1() {
+    let result = eval_part_1("day_1.example").unwrap();
+    assert_eq!(result, "get example answer")
 }

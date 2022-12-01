@@ -24,12 +24,12 @@ jobs:
           uses: dtolnay/rust-toolchain@stable
 
         - name: Test part 1
-          run: cargo test $(date +'day_%d::part_1')
+          run: cargo test --bin $(date +'day_%d_part_1')
         - name: Run part 1
           run: cargo run --bin $(date +'day_%d_part_1')
 
         - name: Test part 2
-          run: cargo test $(date +'day_%d::part_2')
+          run: cargo test --bin $(date +'day_%d_part_2')
         - name: Run part 2
           run: cargo run --bin $(date +'day_%d_part_2')
     
