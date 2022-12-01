@@ -1,6 +1,6 @@
-use std::{path::Path, io::{BufReader, prelude::*}};
+use std::io::{BufReader, prelude::*};
 use anyhow::Result;
-use waridley_aoc_2022::INPUT_DIR;
+use waridley_aoc_2022::input_file;
 
 fn main() -> Result<()> {
     let result = eval_part_2("day_1")?;
@@ -9,7 +9,7 @@ fn main() -> Result<()> {
 }
 
 pub fn eval_part_2(file: &str) -> Result<String> {
-    let input = std::fs::File::open(Path::new(INPUT_DIR).join(file))?;
+    let input = input_file(file)?;
     let input = BufReader::new(input);
 
     let mut elves = vec![0u64];
