@@ -9,7 +9,18 @@ jobs:
         steps:
         - name: Checkout
           uses: actions/checkout@v2
-        - name: rust-toolchain
+
+        - uses: actions/cache@v3
+          with:
+            path: |
+                ~/.cargo/bin/
+                ~/.cargo/registry/index/
+                ~/.cargo/registry/cache/
+                ~/.cargo/git/db/
+                target/
+            key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+        - name: Rust toolchain
           uses: dtolnay/rust-toolchain@stable
 
         - name: Test part 1
