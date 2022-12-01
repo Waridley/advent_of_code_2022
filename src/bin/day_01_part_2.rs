@@ -1,4 +1,3 @@
-use std::{path::Path, io::{BufReader, prelude::*}};
 use anyhow::Result;
 use waridley_aoc_2022::day_1::*;
 
