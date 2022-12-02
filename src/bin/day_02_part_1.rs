@@ -6,7 +6,7 @@ use std::{
 };
 
 fn main() -> Result<()> {
-    let result = eval_part_1("day_1");
+    let result = eval_part_1("day_2");
     println!("{result}");
     Ok(())
 }
