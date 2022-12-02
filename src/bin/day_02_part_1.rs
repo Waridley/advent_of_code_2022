@@ -20,7 +20,7 @@ pub fn eval_part_1(file: &str) -> String {
         let mut pair = line.split(' ');
         let opponent = pair.next().expect("line should not be empty");
         let you = pair.next().expect("missing your play");
-        let mut score: u64 = match you {
+        let mut score: i64 = match you {
             "X" => 1,
             "Y" => 2,
             "Z" => 3,
@@ -32,14 +32,10 @@ pub fn eval_part_1(file: &str) -> String {
             "C" => 3,
             other => panic!("Unexpected opponent input: {other}")
         };
-        score += match score.cmp(&opponent_score) {
-            Ordering::Greater => 6,
-            Ordering::Equal => 3,
-            Ordering::Less => 0,
-        };
+        score += ((score - opponent_score + 1) % 3) * 3;
         score
     })
-    .sum::<u64>();
+    .sum::<i64>();
     format!("{score}")
 }
 
