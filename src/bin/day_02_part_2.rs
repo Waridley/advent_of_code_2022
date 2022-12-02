@@ -36,7 +36,7 @@ pub fn eval_part_2(file: &str) -> String {
             (Scissors, Win) => Rock,
             (opponent, Draw) => opponent,
         };
-        (outcome as i64 * 3 + 3) + you as i64
+        outcome as i64 + you as i64
     })
     .sum::<i64>();
     format!("{score}")
@@ -45,9 +45,9 @@ pub fn eval_part_2(file: &str) -> String {
 #[derive(Clone, Copy)]
 #[repr(i64)]
 enum Outcome {
-    Lose = -1,
-    Draw = 0,
-    Win = 1,
+    Lose = 0,
+    Draw = 3,
+    Win = 6,
 }
 use Outcome::*;
 
