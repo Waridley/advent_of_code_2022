@@ -32,7 +32,7 @@ pub fn eval_part_1(file: &str) -> String {
             "C" => 3,
             other => panic!("Unexpected opponent input: {other}")
         };
-        score += ((score - opponent_score + 1) % 3) * 3;
+        score += ((score - opponent_score + 4) % 3) * 3;
         score
     })
     .sum::<i64>();
