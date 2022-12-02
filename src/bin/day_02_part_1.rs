@@ -1,14 +1,9 @@
-use anyhow::Result;
 use waridley_aoc_2022::input_file;
-use std::{
-    cmp::Ordering,
-    io::{BufReader, prelude::*}
-};
+use std::io::{BufReader, prelude::*};
 
-fn main() -> Result<()> {
+fn main() {
     let result = eval_part_1("day_2");
-    println!("{result}");
-    Ok(())
+    println!("{result}")
 }
 
 pub fn eval_part_1(file: &str) -> String {
