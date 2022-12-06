@@ -3,6 +3,7 @@ use std::{fs::File, path::Path};
 pub mod day_3;
 pub mod day_4;
 pub mod day_5;
+pub mod day_6;
 
 pub const INPUT_DIR: &str = "inputs";
 
