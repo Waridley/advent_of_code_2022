@@ -7,7 +7,7 @@ pub fn main() {
 
 #[cfg(test)]
 #[test]
-fn part_1() {
+fn part_2() {
     assert_eq!(find_marker("mjqjpqmgbljsphdztnvjfqwrcgsmlb".as_bytes(), 14), 19);
     assert_eq!(find_marker("bvwbjplbgvbhsrlpgdmjqwftvncz".as_bytes(), 14), 23);
     assert_eq!(find_marker("nppdvjthqldpwncqszvftbrmjlhg".as_bytes(), 14), 23);

@@ -1,6 +1,6 @@
 use crate::input_file;
 use anyhow::Result;
-use std::io::{prelude::*, BufReader};
+use std::io::prelude::*;
 
 pub fn eval_part_1(file: &str) -> Result<usize> {
     let mut input = input_file(file)?;
@@ -18,7 +18,7 @@ pub fn eval_part_2(file: &str) -> Result<usize> {
 
 pub fn find_marker(stream: &[u8], unique: usize) -> usize {
     let mut i = unique - 1;
-    'stream: for window in stream.windows(unique) {
+    for window in stream.windows(unique) {
         i += 1;
         let mut dup = false;
         for c in 0..unique {
