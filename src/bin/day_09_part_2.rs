@@ -1,8 +1,8 @@
 use anyhow::Result;
-use waridley_aoc_2022::day_8::eval_part_2;
+use waridley_aoc_2022::day_9::eval_part_2;
 
 fn main() -> Result<()> {
-	let result = eval_part_2("day_8")?;
+	let result = eval_part_2("day_9")?;
 	println!("{result}");
 	Ok(())
 }
@@ -10,7 +10,7 @@ fn main() -> Result<()> {
 #[cfg(test)]
 #[test]
 fn part_1() -> Result<()> {
-	let result = eval_part_2("day_8.example")?;
-	assert_eq!(result, 8);
+	let result = eval_part_2("day_9.example_2")?;
+	assert_eq!(result, 36);
 	Ok(())
 }
