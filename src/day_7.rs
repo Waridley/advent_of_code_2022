@@ -1,12 +1,10 @@
+use crate::{input_file, Lines};
+use anyhow::Result;
+use std::collections::BTreeMap;
 use std::{
 	borrow::Cow,
-	io::{BufReader, prelude::*}
+	io::{prelude::*, BufReader},
 };
-use std::collections::BTreeMap;
-use anyhow::Result;
-use crate::input_file;
-
-type Lines = BufReader<std::fs::File>;
 
 pub fn eval_part_1(file: &str) -> Result<usize> {
 	let input = input_file(file)?;
@@ -27,8 +25,12 @@ pub fn eval_part_2(file: &str) -> Result<usize> {
 fn init(mut lines: Lines) -> Result<Dir<'static>> {
 	let mut line = String::new();
 	lines.read_line(&mut line)?;
-	let line = line.strip_prefix("$ ").expect("input should start with a command");
-	let line = line.strip_prefix("cd ").expect("first command should be cd");
+	let line = line
+		.strip_prefix("$ ")
+		.expect("input should start with a command");
+	let line = line
+		.strip_prefix("cd ")
+		.expect("first command should be cd");
 	assert_eq!(line, "/\n");
 	let mut root = Dir::default();
 	root.cd(&mut lines)?;
@@ -44,14 +46,12 @@ struct Dir<'a> {
 
 #[derive(Default, Debug)]
 struct File {
-	size: usize,
+	_size: usize,
 }
 
 impl File {
 	fn new(size: usize) -> Self {
-		Self {
-			size
-		}
+		Self { _size: size }
 	}
 }
 
@@ -59,25 +59,28 @@ impl Dir<'_> {
 	fn cd(&mut self, lines: &mut Lines) -> Result<()> {
 		let mut buf = String::new();
 		if lines.read_line(&mut buf)? == 0 {
-			return Ok(())
+			return Ok(());
 		}
 		let mut line = Cow::from(buf);
 		loop {
 			if line.is_empty() {
-				return Ok(())
+				return Ok(());
 			} else if line == "$ ls\n" {
 				line = self.parse_ls_output(lines)?.into();
 			} else if let Some(name) = line.strip_prefix("$ cd ") {
 				let name = name.strip_suffix('\n').unwrap();
 				if name == ".." {
-					return Ok(())
+					return Ok(());
 				} else {
-					let subdir = self.subdirs.get_mut(name).expect(&*format!("Directory {name} not found"));
+					let subdir = self
+						.subdirs
+						.get_mut(name)
+						.unwrap_or_else(|| panic!("Directory {name} not found"));
 					subdir.cd(lines)?;
 					self.total_size += subdir.total_size;
 					let mut buf = String::new();
 					if lines.read_line(&mut buf)? == 0 {
-						return Ok(())
+						return Ok(());
 					}
 					line = Cow::from(buf);
 				}
@@ -86,20 +89,26 @@ impl Dir<'_> {
 			}
 		}
 	}
-	
+
 	fn parse_ls_output(&mut self, lines: &mut Lines) -> Result<String> {
 		loop {
 			let mut line = String::new();
 			let bytes = lines.read_line(&mut line)?;
 			if bytes == 0 {
-				return Ok("".into())
+				return Ok("".into());
 			}
 			if line.starts_with('$') {
-				return Ok(line)
+				return Ok(line);
 			}
-			
-			let (dir_or_size, name) = line.split_once(' ').expect(&*format!("Unexpected ls output: {line}"));
-			let name = if let Some(name) = name.strip_suffix("\n") { name } else { name };
+
+			let (dir_or_size, name) = line
+				.split_once(' ')
+				.unwrap_or_else(|| panic!("Unexpected ls output: {line}"));
+			let name = if let Some(name) = name.strip_suffix('\n') {
+				name
+			} else {
+				name
+			};
 			if dir_or_size == "dir" {
 				let existing = self.subdirs.insert(name.to_owned().into(), Dir::default());
 				if let Some(existing) = existing {
@@ -115,7 +124,7 @@ impl Dir<'_> {
 			}
 		}
 	}
-	
+
 	fn sum_dirs_lt_or_eq_to(&self, size: usize) -> usize {
 		let mut sum = 0;
 		if self.total_size <= size {
@@ -126,7 +135,7 @@ impl Dir<'_> {
 		}
 		sum
 	}
-	
+
 	fn best_dir_to_delete(&self, needed: usize) -> &Dir {
 		let mut curr = self;
 		for dir in self.subdirs.values() {

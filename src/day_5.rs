@@ -8,13 +8,13 @@ pub fn eval_part_1(file: &str) -> Result<String> {
 	let mut lines = input.lines();
 	let mut stacks = build_stacks(&mut lines)?;
 	let line = lines.next().expect("instructions separator")?;
-	debug_assert!(line == "");
+	debug_assert!(line.is_empty());
 	for line in lines {
 		let Instruction {
 			n,
 			from_col,
 			to_col,
-		} = parse_instruction(&*line?)?;
+		} = parse_instruction(&line?)?;
 		let (from, to) = stacks.get_2_mut(from_col, to_col);
 		for _ in 0..n {
 			to.push(from.pop().expect("stack shouldn't be empty"));
@@ -36,13 +36,13 @@ pub fn eval_part_2(file: &str) -> Result<String> {
 	let mut lines = input.lines();
 	let mut stacks = build_stacks(&mut lines)?;
 	let line = lines.next().expect("instructions separator")?;
-	debug_assert!(line == "");
+	debug_assert!(line.is_empty());
 	for line in lines {
 		let Instruction {
 			n,
 			from_col,
 			to_col,
-		} = parse_instruction(&*line?)?;
+		} = parse_instruction(&line?)?;
 		let start = stacks[from_col].len() - n;
 		let (from, to) = stacks.get_2_mut(from_col, to_col);
 		to.extend(from.drain(start..))
@@ -69,7 +69,7 @@ impl<T> Get2Mut for Vec<T> {
 		assert!(a < self.len());
 		assert!(b < self.len());
 		let this = self.as_mut_ptr();
-		unsafe { (&mut *this.offset(a as isize), &mut *this.offset(b as isize)) }
+		unsafe { (&mut *this.add(a), &mut *this.add(b)) }
 	}
 }
 
