@@ -2,6 +2,9 @@ name: CI
 
 on: [push]
 
+env:
+  TZ: :US/Eastern
+
 jobs:
     run:
         name: Run
