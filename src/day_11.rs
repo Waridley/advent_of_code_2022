@@ -2,29 +2,24 @@ use std::fmt::{Debug, Formatter};
 use std::io::prelude::*;
 use std::ops::{Add, Mul};
 use anyhow::Result;
+use num_bigint::BigUint;
+use num_traits::Zero;
 use crate::{input_lines};
 
-pub fn eval_part_1(file: &str) -> Result<usize> {
+pub fn eval_part_1(file: &str) -> Result<Worry> {
 	let mut lines = input_lines(file)?;
 	let mut monkeys = Monkeys::deserialize(&mut lines)?;
-	for _ in 0..20 {
-		monkeys.round();
-	}
-	let (mut most, mut second_most) = (0, 0);
-	for monkey in monkeys.0.iter() {
-		let n = monkey.num_inspected;
-		if n > most {
-			second_most = most;
-			most = n;
-		} else if n > second_most {
-			second_most = n;
-		}
-	}
-	Ok(most * second_most)
+	Ok(monkeys.monkey_business(20))
+}
+
+pub fn eval_part_2(file: &str) -> Result<Worry> {
+	let mut lines = input_lines(file)?;
+	let mut monkeys = Monkeys::deserialize(&mut lines)?;
+	Ok(monkeys.monkey_business(10_000))
 }
 
 type MonkeyId = usize;
-type Worry = usize;
+type Worry = BigUint;
 
 #[derive(Debug)]
 struct Monkeys(&'static mut [Monkey]);
@@ -61,10 +56,10 @@ impl Monkeys {
 				other => panic!("Unknown operation: {other}")
 			};
 			let operation = match arg {
-				"old" => Box::new(move |old| op(old, old)) as _,
+				"old" => Box::new(move |old: Worry| op(old.clone(), old.clone())) as _,
 				n => {
-					let n = n.parse()?;
-					Box::new(move |old| op(old, n)) as _
+					let n: Worry = n.parse()?;
+					Box::new(move |old| op(old, n.clone())) as _
 				},
 			};
 			
@@ -89,7 +84,7 @@ impl Monkeys {
 				test,
 				if_true,
 				if_false,
-				num_inspected: 0,
+				num_inspected: Worry::zero(),
 			});
 			
 			let Some(line) = lines.next() else { break };
@@ -105,15 +100,15 @@ impl Monkeys {
 			let Monkey {
 				ref mut holding,
 				ref operation,
-				test,
+				ref test,
 				if_true,
 				if_false,
 				..
 			} = self.0[i];
-			tmp.extend(holding.drain(..).map(|item| (operation)(item) / 3));
+			tmp.extend(holding.drain(..).map(|item| (operation)(item) / Worry::from(3u128)));
 			for item in tmp.drain(..) {
-				self.0[i].num_inspected += 1;
-				self.0[if item % test == 0 {
+				self.0[i].num_inspected += Worry::from(1u128);
+				self.0[if item.clone() % test == Worry::zero() {
 					if_true
 				} else {
 					if_false
@@ -121,15 +116,32 @@ impl Monkeys {
 			}
 		}
 	}
+	
+	fn monkey_business(&mut self, rounds: usize) -> Worry {
+		for _ in 0..rounds {
+			self.round();
+		}
+		let (mut most, mut second_most) = (Worry::zero(), Worry::zero());
+		for monkey in self.0.iter() {
+			let n = monkey.num_inspected.clone();
+			if n > most {
+				second_most = most;
+				most = n;
+			} else if n > second_most {
+				second_most = n;
+			}
+		}
+		most * second_most
+	}
 }
 
 struct Monkey {
 	holding: Vec<Worry>,
 	operation: Box<dyn  Fn(Worry) -> Worry>,
-	test: usize,
+	test: Worry,
 	if_true: MonkeyId,
 	if_false: MonkeyId,
-	num_inspected: usize,
+	num_inspected: Worry,
 }
 
 impl Debug for Monkey {
