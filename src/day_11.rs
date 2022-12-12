@@ -1,6 +1,5 @@
 use std::fmt::{Debug, Formatter};
 use std::io::prelude::*;
-use std::ops::{Add, Mul};
 use anyhow::Result;
 use num_bigint::BigUint;
 use num_traits::Zero;
@@ -9,17 +8,17 @@ use crate::{input_lines};
 pub fn eval_part_1(file: &str) -> Result<Worry> {
 	let mut lines = input_lines(file)?;
 	let mut monkeys = Monkeys::deserialize(&mut lines)?;
-	Ok(monkeys.monkey_business(20))
+	Ok(monkeys.monkey_business(20, |worry| worry / 3))
 }
 
 pub fn eval_part_2(file: &str) -> Result<Worry> {
 	let mut lines = input_lines(file)?;
 	let mut monkeys = Monkeys::deserialize(&mut lines)?;
-	Ok(monkeys.monkey_business(10_000))
+	Ok(monkeys.monkey_business(10_000, |worry| worry))
 }
 
 type MonkeyId = usize;
-type Worry = BigUint;
+pub type Worry = u64;
 
 #[derive(Debug)]
 struct Monkeys(&'static mut [Monkey]);
@@ -50,17 +49,12 @@ impl Monkeys {
 			let line = line.strip_prefix("  Operation: new = old ")
 				.unwrap_or_else(|| panic!("Expected operation, got: {line}"));
 			let (op, arg) = line.split_once(' ').expect("operation arg");
-			let op = match op {
-				"*" => Worry::mul,
-				"+" => Worry::add,
-				other => panic!("Unknown operation: {other}")
-			};
-			let operation = match arg {
-				"old" => Box::new(move |old: Worry| op(old.clone(), old.clone())) as _,
-				n => {
-					let n: Worry = n.parse()?;
-					Box::new(move |old| op(old, n.clone())) as _
-				},
+			let operation = match (op, arg) {
+				("+", "old") => Op::Double,
+				("*", "old") => Op::Square,
+				("+", n) => Op::Add(n.parse()?),
+				("*", n) => Op::Mul(n.parse()?),
+				_ => panic!("Unknown operation: {line}")
 			};
 			
 			let line = lines.next().expect("operation")?;
@@ -93,33 +87,55 @@ impl Monkeys {
 		Ok(Self(Vec::leak(monkeys)))
 	}
 	
-	fn round(&mut self) {
+	fn round(&mut self, manage_worry: &impl Fn(Worry) -> Worry) {
 		let mut tmp = vec![];
 		for i in 0..self.0.len() {
 			tmp.clear();
-			let Monkey {
-				ref mut holding,
-				ref operation,
-				ref test,
-				if_true,
-				if_false,
-				..
-			} = self.0[i];
-			tmp.extend(holding.drain(..).map(|item| (operation)(item) / Worry::from(3u128)));
+			{
+				let Monkey {
+					ref mut holding,
+					ref operation,
+					ref mut num_inspected,
+					..
+				} = self.0[i];
+				*num_inspected += holding.len() as u64;
+				tmp.extend(holding.drain(..)
+					.map(|item| match operation {
+						Op::Add(n) => item + n,
+						Op::Double => item.clone() + item,
+						Op::Mul(n) => item * n,
+						Op::Square => item.clone() * item,
+					})
+					.map(|item| (manage_worry)(item)));
+			}
 			for item in tmp.drain(..) {
-				self.0[i].num_inspected += Worry::from(1u128);
-				self.0[if item.clone() % test == Worry::zero() {
+				let Monkey {
+					ref test, if_true, if_false, ..
+				} = self.0[i];
+				let to = if item.clone() % test == Worry::zero() {
 					if_true
 				} else {
 					if_false
-				}].holding.push(item);
+				};
+				let to = &mut self.0[to];
+				let item = match &to.operation {
+					Op::Add(n) => item,
+					Op::Double => item,
+					Op::Mul(n) => item,
+					Op::Square => item,
+				};
+				to.holding.push(item);
 			}
 		}
 	}
 	
-	fn monkey_business(&mut self, rounds: usize) -> Worry {
+	fn monkey_business(&mut self, rounds: usize, manage_worry: impl Fn(Worry) -> Worry) -> Worry {
+		let common_factor = self.0.iter()
+			.map(|monkey| monkey.test.clone())
+			.fold(3, |acc, test| acc * test);
+		let manage_worry = move |worry| (&manage_worry)(worry) % &common_factor;
 		for _ in 0..rounds {
-			self.round();
+			self.round(&manage_worry);
 		}
 		let (mut most, mut second_most) = (Worry::zero(), Worry::zero());
 		for monkey in self.0.iter() {
@@ -137,11 +153,18 @@ impl Monkeys {
 
 struct Monkey {
 	holding: Vec<Worry>,
-	operation: Box<dyn  Fn(Worry) -> Worry>,
+	operation: Op,
 	test: Worry,
 	if_true: MonkeyId,
 	if_false: MonkeyId,
 	num_inspected: Worry,
+}
+
+enum Op {
+	Add(Worry),
+	Double,
+	Mul(Worry),
+	Square,
 }
 
 impl Debug for Monkey {
