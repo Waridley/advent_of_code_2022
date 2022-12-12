@@ -1,8 +1,6 @@
 use std::fmt::{Debug, Formatter};
 use std::io::prelude::*;
 use anyhow::Result;
-use num_bigint::BigUint;
-use num_traits::Zero;
 use crate::{input_lines};
 
 pub fn eval_part_1(file: &str) -> Result<Worry> {
@@ -78,7 +76,7 @@ impl Monkeys {
 				test,
 				if_true,
 				if_false,
-				num_inspected: Worry::zero(),
+				num_inspected: 0,
 			});
 			
 			let Some(line) = lines.next() else { break };
@@ -112,18 +110,12 @@ impl Monkeys {
 				let Monkey {
 					ref test, if_true, if_false, ..
 				} = self.0[i];
-				let to = if item.clone() % test == Worry::zero() {
+				let to = if item.clone() % test == 0 {
 					if_true
 				} else {
 					if_false
 				};
 				let to = &mut self.0[to];
-				let item = match &to.operation {
-					Op::Add(n) => item,
-					Op::Double => item,
-					Op::Mul(n) => item,
-					Op::Square => item,
-				};
 				to.holding.push(item);
 			}
 		}
@@ -137,7 +129,7 @@ impl Monkeys {
 		for _ in 0..rounds {
 			self.round(&manage_worry);
 		}
-		let (mut most, mut second_most) = (Worry::zero(), Worry::zero());
+		let (mut most, mut second_most) = (0, 0);
 		for monkey in self.0.iter() {
 			let n = monkey.num_inspected.clone();
 			if n > most {

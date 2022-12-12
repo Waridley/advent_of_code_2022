@@ -9,7 +9,7 @@ fn main() -> Result<()> {
 #[test]
 fn part_1() -> Result<()> {
 	let mut screen = vec![];
-	let result = eval_part_2("day_10.example", &mut screen)?;
+	eval_part_2("day_10.example", &mut screen)?;
 	let screen = String::from_utf8(screen)?;
 	println!("{screen}");
 	assert_eq!(screen,
