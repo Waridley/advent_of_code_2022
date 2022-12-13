@@ -13,6 +13,14 @@ pub fn eval_part_1(file: &str) -> Result<usize> {
 	Ok(rope.tail_visited.len())
 }
 
+#[cfg(test)]
+#[test]
+fn part_1() -> Result<()> {
+	let result = eval_part_1("day_9.example")?;
+	assert_eq!(result, 13);
+	Ok(())
+}
+
 pub fn eval_part_2(file: &str) -> Result<usize> {
 	let lines = Lines::new(input_file(file)?);
 	let mut rope = Rope::<10>::new();
@@ -21,6 +29,14 @@ pub fn eval_part_2(file: &str) -> Result<usize> {
 		rope.command(line)?;
 	}
 	Ok(rope.tail_visited.len())
+}
+
+#[cfg(test)]
+#[test]
+fn part_2() -> Result<()> {
+	let result = eval_part_2("day_9.example_2")?;
+	assert_eq!(result, 36);
+	Ok(())
 }
 
 struct Rope<const KNOTS: usize> {

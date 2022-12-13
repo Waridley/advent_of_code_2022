@@ -30,6 +30,13 @@ pub fn eval_part_1(file: &str) -> Result<String> {
 	}
 }
 
+#[cfg(test)]
+#[test]
+fn part_1() {
+	let result = eval_part_1("day_5.example").unwrap();
+	assert_eq!(result, "CMZ")
+}
+
 pub fn eval_part_2(file: &str) -> Result<String> {
 	let input = input_file(file)?;
 	let input = BufReader::new(input);
@@ -55,6 +62,13 @@ pub fn eval_part_2(file: &str) -> Result<String> {
 				.collect::<Vec<u8>>(),
 		))
 	}
+}
+
+#[cfg(test)]
+#[test]
+fn part_2() {
+	let result = eval_part_2("day_5.example").unwrap();
+	assert_eq!(result, "MCD")
 }
 
 trait Get2Mut {

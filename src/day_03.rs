@@ -20,6 +20,13 @@ pub fn eval_part_1(file: &str) -> Result<usize> {
 	Ok(sum)
 }
 
+#[cfg(test)]
+#[test]
+fn part_1() {
+	let result = eval_part_1("day_3.example").unwrap();
+	assert_eq!(result, 157)
+}
+
 pub fn eval_part_2(file: &str) -> Result<usize> {
 	let input = input_file(file)?;
 	let input = BufReader::new(input);
@@ -42,6 +49,13 @@ pub fn eval_part_2(file: &str) -> Result<usize> {
 	}
 
 	Ok(sum)
+}
+
+#[cfg(test)]
+#[test]
+fn part_2() {
+	let result = eval_part_2("day_3.example").unwrap();
+	assert_eq!(result, 70)
 }
 
 fn contents(sack: &str) -> u64 {

@@ -9,10 +9,26 @@ pub fn eval_part_1(file: &str) -> Result<Worry> {
 	Ok(monkeys.monkey_business(20, |worry| worry / 3))
 }
 
+#[cfg(test)]
+#[test]
+fn part_1() -> Result<()> {
+	let result = eval_part_1("day_11.example")?;
+	assert_eq!(result, 10605);
+	Ok(())
+}
+
 pub fn eval_part_2(file: &str) -> Result<Worry> {
 	let mut lines = input_lines(file)?;
 	let mut monkeys = Monkeys::deserialize(&mut lines)?;
 	Ok(monkeys.monkey_business(10_000, |worry| worry))
+}
+
+#[cfg(test)]
+#[test]
+fn part_2() -> Result<()> {
+	let result = eval_part_2("day_11.example")?;
+	assert_eq!(result, 2713310158);
+	Ok(())
 }
 
 type MonkeyId = usize;

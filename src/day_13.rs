@@ -26,6 +26,14 @@ pub fn eval_part_1(file: &str) -> Result<usize> {
 	Ok(sum)
 }
 
+#[cfg(test)]
+#[test]
+fn part_1() -> Result<()> {
+	let result = eval_part_1("day_13.example")?;
+	assert_eq!(result, 13);
+	Ok(())
+}
+
 pub fn eval_part_2(file: &str) -> Result<usize> {
 	let dividers = [
 		List(vec![List(vec![Int(2)])]),
@@ -56,6 +64,14 @@ pub fn eval_part_2(file: &str) -> Result<usize> {
 		.unwrap()
 		.0 + 1;
 	Ok(div_a * div_b)
+}
+
+#[cfg(test)]
+#[test]
+fn part_2() -> Result<()> {
+	let result = eval_part_2("day_13.example")?;
+	assert_eq!(result, 140);
+	Ok(())
 }
 
 fn list(input: &str) -> Result<(Vec<Value>, &str)> {

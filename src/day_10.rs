@@ -28,6 +28,14 @@ pub fn eval_part_1(file: &str) -> Result<isize> {
 	Ok(sum)
 }
 
+#[cfg(test)]
+#[test]
+fn part_1() -> Result<()> {
+	let result = eval_part_1("day_10.example")?;
+	assert_eq!(result, 13140);
+	Ok(())
+}
+
 pub fn eval_part_2(file: &str, screen: &mut impl Write) -> Result<()> {
 	let lines = Lines::new(input_file(file)?);
 	let mut instructions = lines.lines().map(|line| line.unwrap().parse().unwrap());
@@ -43,6 +51,26 @@ pub fn eval_part_2(file: &str, screen: &mut impl Write) -> Result<()> {
 		}
 	}
 	crt.render(screen)
+}
+
+#[cfg(test)]
+#[test]
+fn part_2() -> Result<()> {
+	let mut screen = vec![];
+	eval_part_2("day_10.example", &mut screen)?;
+	let screen = String::from_utf8(screen)?;
+	println!("{screen}");
+	assert_eq!(
+		screen,
+		"##..##..##..##..##..##..##..##..##..##..
+###...###...###...###...###...###...###.
+####....####....####....####....####....
+#####.....#####.....#####.....#####.....
+######......######......######......####
+#######.......#######.......#######.....
+"
+	);
+	Ok(())
 }
 
 #[derive(Debug)]

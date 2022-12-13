@@ -13,6 +13,14 @@ pub fn eval_part_1(file: &str) -> Result<usize> {
 	Ok(root.sum_dirs_lt_or_eq_to(100_000))
 }
 
+#[cfg(test)]
+#[test]
+fn part_1() -> Result<()> {
+	let result = eval_part_1("day_7.example")?;
+	assert_eq!(result, 95437);
+	Ok(())
+}
+
 pub fn eval_part_2(file: &str) -> Result<usize> {
 	let input = input_file(file)?;
 	let lines = BufReader::new(input);
@@ -20,6 +28,14 @@ pub fn eval_part_2(file: &str) -> Result<usize> {
 	let avail = 70_000_000 - root.total_size;
 	let needed = 30_000_000 - avail;
 	Ok(root.best_dir_to_delete(needed).total_size)
+}
+
+#[cfg(test)]
+#[test]
+fn part_2() -> Result<()> {
+	let result = eval_part_2("day_7.example")?;
+	assert_eq!(result, 24933642);
+	Ok(())
 }
 
 fn init(mut lines: Lines) -> Result<Dir<'static>> {

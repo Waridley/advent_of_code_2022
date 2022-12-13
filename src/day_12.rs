@@ -12,9 +12,25 @@ pub fn eval_part_1(file: &str) -> Result<usize> {
 	Ok(map.fewest_steps())
 }
 
+#[cfg(test)]
+#[test]
+fn part_1() -> Result<()> {
+	let result = eval_part_1("day_12.example")?;
+	assert_eq!(result, 31);
+	Ok(())
+}
+
 pub fn eval_part_2(file: &str) -> Result<usize> {
 	let map = Map::deserialize(&mut input_lines(file)?)?;
 	Ok(map.closest_valley())
+}
+
+#[cfg(test)]
+#[test]
+fn part_2() -> Result<()> {
+	let result = eval_part_2("day_12.example")?;
+	assert_eq!(result, 29);
+	Ok(())
 }
 
 struct Map {

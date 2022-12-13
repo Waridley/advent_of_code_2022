@@ -19,9 +19,25 @@ pub fn eval_part_1(file: &str) -> Result<usize> {
 	Ok(sum)
 }
 
+#[cfg(test)]
+#[test]
+fn part_1() -> Result<()> {
+	let result = eval_part_1("day_8.example")?;
+	assert_eq!(result, 21);
+	Ok(())
+}
+
 pub fn eval_part_2(file: &str) -> Result<u64> {
 	let map = Map::build(input_file(file)?)?;
 	Ok(map.max_view_dist())
+}
+
+#[cfg(test)]
+#[test]
+fn part_2() -> Result<()> {
+	let result = eval_part_2("day_8.example")?;
+	assert_eq!(result, 8);
+	Ok(())
 }
 
 #[derive(Debug)]

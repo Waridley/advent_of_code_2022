@@ -6,11 +6,3 @@ fn main() -> Result<()> {
 	println!("{result}");
 	Ok(())
 }
-
-#[cfg(test)]
-#[test]
-fn part_1() -> Result<()> {
-	let result = eval_part_1("day_13.example")?;
-	assert_eq!(result, 13);
-	Ok(())
-}
