@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
+
+[profile.dev]
+opt-level = 2
