@@ -164,10 +164,8 @@ impl Map {
 			}
 
 			if d == usize::MAX {
-				if !q.contains(&(x, y)) {
-					// failed to find a suitable foothold, wait for neighbors to be calculated
-					q.push_back((x, y))
-				}
+				// failed to find a suitable foothold, wait for neighbors to be calculated
+				q.push_back((x, y))
 			} else if (x, y) == self.start {
 				break;
 			}
