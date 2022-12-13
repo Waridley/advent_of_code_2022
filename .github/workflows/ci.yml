@@ -35,4 +35,6 @@ jobs:
           run: cargo test --lib $(date +'day_%d::part_2')
         - name: Run part 2
           run: cargo run --bin $(date +'day_%d_part_2')
-    
+
+        - name: Run all tests
+          run: cargo test
