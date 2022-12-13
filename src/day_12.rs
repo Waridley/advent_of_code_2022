@@ -142,9 +142,6 @@ impl Map {
 		loop {
 			let Some((x, y)) = q.pop_front() else { break };
 			let d = dists[(x, y)];
-			if d > dists[closest_valley] {
-				continue;
-			}
 			let h = self[(x, y)];
 
 			for (nx, ny) in neighbors((x, y)) {
