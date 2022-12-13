@@ -1,40 +1,46 @@
+use crate::day_10::ClockState::*;
+use crate::day_10::Instruction::*;
+use crate::{input_file, Lines};
+use anyhow::Result;
 use std::fmt::{Display, Formatter};
 use std::io::{BufRead, Write};
 use std::ops::ControlFlow;
 use std::ops::ControlFlow::{Break, Continue};
 use std::str::FromStr;
-use crate::{input_file, Lines};
-use crate::day_10::Instruction::*;
-use anyhow::Result;
-use crate::day_10::ClockState::*;
 
 pub fn eval_part_1(file: &str) -> Result<isize> {
 	let lines = Lines::new(input_file(file)?);
-	let mut instructions = lines.lines()
-		.map(|line| line.unwrap().parse().unwrap());
+	let mut instructions = lines.lines().map(|line| line.unwrap().parse().unwrap());
 	let mut cpu = Cpu::new();
 	let mut sum = 0;
 	loop {
-		if cpu.rising_edge(&mut instructions).is_break() { break }
+		if cpu.rising_edge(&mut instructions).is_break() {
+			break;
+		}
 		if (cpu.cycle + 20) % 40 == 0 && cpu.cycle <= 220 {
 			let signal = cpu.cycle as isize * cpu.registers.x;
 			sum += signal;
 		}
-		if cpu.falling_edge().is_break() { break }
+		if cpu.falling_edge().is_break() {
+			break;
+		}
 	}
 	Ok(sum)
 }
 
 pub fn eval_part_2(file: &str, screen: &mut impl Write) -> Result<()> {
 	let lines = Lines::new(input_file(file)?);
-	let mut instructions = lines.lines()
-		.map(|line| line.unwrap().parse().unwrap());
+	let mut instructions = lines.lines().map(|line| line.unwrap().parse().unwrap());
 	let mut cpu = Cpu::new();
 	let mut crt = Crt::new();
 	loop {
-		if cpu.rising_edge(&mut instructions).is_break() { break }
+		if cpu.rising_edge(&mut instructions).is_break() {
+			break;
+		}
 		crt.update(cpu.registers.x);
-		if cpu.falling_edge().is_break() { break }
+		if cpu.falling_edge().is_break() {
+			break;
+		}
 	}
 	crt.render(screen)
 }
@@ -56,8 +62,11 @@ impl Cpu {
 			registers: Registers::new(),
 		}
 	}
-	
-	fn rising_edge(&mut self, instructions: &mut impl Iterator<Item = Instruction>)  -> ControlFlow<()> {
+
+	fn rising_edge(
+		&mut self,
+		instructions: &mut impl Iterator<Item = Instruction>,
+	) -> ControlFlow<()> {
 		assert_eq!(self.clock, Low);
 		self.clock = High;
 		self.cycle += 1;
@@ -71,7 +80,7 @@ impl Cpu {
 		}
 		Continue(())
 	}
-	
+
 	fn falling_edge(&mut self) -> ControlFlow<()> {
 		assert_eq!(self.clock, High);
 		self.clock = Low;
@@ -100,7 +109,7 @@ impl Instruction {
 			Noop => 1,
 		}
 	}
-	
+
 	fn eval(self, registers: &mut Registers) {
 		match self {
 			Addx(v) => registers.x += v,
@@ -125,7 +134,7 @@ impl Display for InstructionErr {
 
 impl FromStr for Instruction {
 	type Err = InstructionErr;
-	
+
 	fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
 		use InstructionErr::*;
 		let mut split = s.split(' ');
@@ -136,10 +145,8 @@ impl FromStr for Instruction {
 					Ok(v) => Ok(Addx(v)),
 					Err(e) => Err(ParseError(e)),
 				}
-			},
-			Some("noop") => {
-				Ok(Noop)
-			},
+			}
+			Some("noop") => Ok(Noop),
 			Some(other) => Err(UnknownInstruction(other.into())),
 			None => Err(Empty),
 		}
@@ -166,9 +173,7 @@ struct Registers {
 
 impl Registers {
 	fn new() -> Self {
-		Self {
-			x: 1,
-		}
+		Self { x: 1 }
 	}
 }
 
@@ -185,24 +190,22 @@ impl Crt {
 			cycle: 0,
 		}
 	}
-	
+
 	fn update(&mut self, x: isize) {
 		let v = self.cycle / 40;
 		let h = self.cycle % 40;
-		self.pixels[v][h] = if ((x - 1)..=(x + 1))
-			.contains(&(h as isize))
-		{
+		self.pixels[v][h] = if ((x - 1)..=(x + 1)).contains(&(h as isize)) {
 			b'#'
 		} else {
 			b'.'
 		};
 		self.cycle = (self.cycle + 1) % (40 * 6);
 	}
-	
+
 	fn render(&self, screen: &mut impl Write) -> Result<()> {
 		for scanline in &self.pixels {
 			assert_eq!(screen.write(scanline)?, 40);
-			screen.write(&[b'\n'])?;
+			screen.write_all(&[b'\n'])?;
 		}
 		Ok(())
 	}

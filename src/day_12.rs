@@ -1,13 +1,20 @@
+use crate::input_lines;
+use anyhow::Result;
 use std::collections::VecDeque;
 use std::fmt::{Debug, Display, Formatter, Write};
-use anyhow::Result;
-use crate::input_lines;
 use std::io::prelude::*;
 use std::ops::{Index, IndexMut};
+
+const NEIGHBORS: [(isize, isize); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
 
 pub fn eval_part_1(file: &str) -> Result<usize> {
 	let map = Map::deserialize(&mut input_lines(file)?)?;
 	Ok(map.fewest_steps())
+}
+
+pub fn eval_part_2(file: &str) -> Result<usize> {
+	let map = Map::deserialize(&mut input_lines(file)?)?;
+	Ok(map.closest_valley())
 }
 
 struct Map {
@@ -30,7 +37,7 @@ impl Map {
 			} else {
 				assert_eq!(width, line.len())
 			}
-			
+
 			for (x, h) in line.iter_mut().enumerate() {
 				if *h == b'S' {
 					assert!(start.replace((x, y)).is_none());
@@ -39,14 +46,14 @@ impl Map {
 					assert!(end.replace((x, y)).is_none());
 					*h = b'z'
 				}
-				
-				*h = *h - b'a'
+
+				*h -= b'a'
 			}
 			heights.append(&mut line);
 		}
 		assert_ne!(width, 0);
 		let (start, end) = (start.unwrap(), end.unwrap());
-		
+
 		Ok(Self {
 			width,
 			start,
@@ -54,42 +61,42 @@ impl Map {
 			heights: heights.leak(),
 		})
 	}
-	
+
 	fn rows(&self) -> impl Iterator<Item = &[u8]> {
 		self.heights.chunks(self.width)
 	}
-	
+
 	fn num_rows(&self) -> usize {
 		self.heights.len() / self.width
 	}
-	
+
 	fn fewest_steps(&self) -> usize {
-		const NEIGHBORS: [(isize, isize); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
-		
 		let mut dists = Dists {
-			dists: &mut *vec![usize::MAX; self.heights.len()],
+			dists: &mut vec![usize::MAX; self.heights.len()],
 			width: self.width,
 		};
 		dists[self.end] = 0;
-		
+
 		let max_x = self.width;
 		let max_y = self.num_rows();
-		let neighbors = |(x, y): (usize, usize)| NEIGHBORS.iter()
-			.map(move |&(nx, ny)| x.checked_add_signed(nx).zip(y.checked_add_signed(ny)))
-			.flatten()
-			.filter(move |(nx, ny)| *nx < max_x && *ny < max_y);
-		
+		let neighbors = |(x, y): (usize, usize)| {
+			NEIGHBORS
+				.iter()
+				.filter_map(move |&(nx, ny)| x.checked_add_signed(nx).zip(y.checked_add_signed(ny)))
+				.filter(move |(nx, ny)| *nx < max_x && *ny < max_y)
+		};
+
 		let mut q = neighbors(self.end).collect::<VecDeque<_>>();
-		
+
 		loop {
 			let Some((x, y)) = q.pop_front() else { println!("queue is empty"); break };
 			let d = dists[(x, y)];
 			let h = self[(x, y)];
-			
+
 			for (nx, ny) in neighbors((x, y)) {
 				let nd = dists[(nx, ny)];
 				let nh = self[(nx, ny)];
-				
+
 				if nd == usize::MAX {
 					if !q.contains(&(nx, ny)) {
 						q.push_back((nx, ny))
@@ -98,24 +105,83 @@ impl Map {
 					dists[(x, y)] = nd + 1;
 				}
 			}
-			
+
 			if dists[(x, y)] == usize::MAX {
 				if !q.contains(&(x, y)) {
 					// failed to find a suitable foothold, wait for neighbors to be calculated
 					q.push_back((x, y))
 				}
 			} else if (x, y) == self.start {
-				break
+				break;
 			}
 		}
 		println!("{dists:?}");
 		dists[self.start]
 	}
+
+	fn closest_valley(&self) -> usize {
+		let mut dists = Dists {
+			dists: &mut vec![usize::MAX; self.heights.len()],
+			width: self.width,
+		};
+		dists[self.end] = 0;
+
+		let max_x = self.width;
+		let max_y = self.num_rows();
+		let neighbors = |(x, y): (usize, usize)| {
+			NEIGHBORS
+				.iter()
+				.filter_map(move |&(nx, ny)| x.checked_add_signed(nx).zip(y.checked_add_signed(ny)))
+				.filter(move |(nx, ny)| *nx < max_x && *ny < max_y)
+		};
+
+		let mut q = neighbors(self.end).collect::<VecDeque<_>>();
+
+		let mut closest_valley = self.start; // start has elevation `a`
+
+		loop {
+			let Some((x, y)) = q.pop_front() else { break };
+			let d = dists[(x, y)];
+			if d > dists[closest_valley] {
+				continue;
+			}
+			let h = self[(x, y)];
+
+			for (nx, ny) in neighbors((x, y)) {
+				let nd = dists[(nx, ny)];
+				let nh = self[(nx, ny)];
+
+				if nd == usize::MAX {
+					if !q.contains(&(nx, ny)) {
+						q.push_back((nx, ny))
+					}
+				} else if nd + 1 < d && nh <= h + 1 {
+					dists[(x, y)] = nd + 1;
+				}
+			}
+
+			let d = dists[(x, y)];
+
+			if h == 0 && d < dists[closest_valley] {
+				closest_valley = (x, y)
+			}
+
+			if d == usize::MAX {
+				if !q.contains(&(x, y)) {
+					// failed to find a suitable foothold, wait for neighbors to be calculated
+					q.push_back((x, y))
+				}
+			} else if (x, y) == self.start {
+				break;
+			}
+		}
+		dists[closest_valley]
+	}
 }
 
 impl Index<(usize, usize)> for Map {
 	type Output = u8;
-	
+
 	fn index(&self, index: (usize, usize)) -> &Self::Output {
 		&self.heights[(index.1 * self.width) + index.0]
 	}
@@ -145,19 +211,19 @@ impl Debug for Dists<'_> {
 				if *b == usize::MAX {
 					f.write_str("    ")?
 				} else {
-					f.write_str(&*format!("{b:4.}"))?;
+					f.write_str(&format!("{b:4}"))?;
 				}
 			}
 			f.write_char('\n')?
 		}
-		
+
 		Ok(())
 	}
 }
 
 impl Index<(usize, usize)> for Dists<'_> {
 	type Output = usize;
-	
+
 	fn index(&self, (x, y): (usize, usize)) -> &Self::Output {
 		&self.dists[x + (y * self.width)]
 	}

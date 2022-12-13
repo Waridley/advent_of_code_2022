@@ -24,7 +24,7 @@ jobs:
             key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
         - name: Rust toolchain
-          uses: dtolnay/rust-toolchain@stable
+          uses: dtolnay/rust-toolchain@beta
 
         - name: Test part 1
           run: cargo test --bin $(date +'day_%d_part_1')

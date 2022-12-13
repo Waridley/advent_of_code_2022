@@ -1,7 +1,7 @@
-use std::collections::HashSet;
-use std::io::BufRead;
 use crate::{input_file, Lines};
 use anyhow::Result;
+use std::collections::HashSet;
+use std::io::BufRead;
 
 pub fn eval_part_1(file: &str) -> Result<usize> {
 	let lines = Lines::new(input_file(file)?);
@@ -35,18 +35,20 @@ impl<const KNOTS: usize> Rope<KNOTS> {
 			tail_visited: HashSet::default(),
 		}
 	}
-	
+
 	fn head_mut(&mut self) -> &mut (i32, i32) {
 		&mut self.knots[0]
 	}
-	
+
 	fn tail_mut(&mut self) -> &mut (i32, i32) {
 		self.knots.last_mut().unwrap()
 	}
-	
+
 	fn command(&mut self, cmd: impl AsRef<str>) -> Result<()> {
 		let cmd = cmd.as_ref();
-		let (dir, dist) = cmd.split_once(' ').unwrap_or_else(|| panic!("invalid command: {cmd}"));
+		let (dir, dist) = cmd
+			.split_once(' ')
+			.unwrap_or_else(|| panic!("invalid command: {cmd}"));
 		let dist = dist.parse::<u32>()?;
 		match dir {
 			"L" => (0..dist).for_each(|_| {
@@ -65,7 +67,7 @@ impl<const KNOTS: usize> Rope<KNOTS> {
 				self.head_mut().1 += 1;
 				self.pull_tails();
 			}),
-			cmd => panic!("invalid command: {cmd}")
+			cmd => panic!("invalid command: {cmd}"),
 		}
 		Ok(())
 	}
@@ -77,10 +79,10 @@ impl<const KNOTS: usize> Rope<KNOTS> {
 		let pos = *self.tail_mut();
 		self.tail_visited.insert(pos);
 	}
-	
+
 	fn pull_tail(&mut self, i: usize) {
 		let [head, tail] = &mut self.knots[(i - 1)..=i] else { unreachable!("{i}")};
-		
+
 		let y_dist = head.1 - tail.1;
 		let x_dist = head.0 - tail.0;
 
