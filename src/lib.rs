@@ -1,16 +1,17 @@
 use std::io::BufReader;
 use std::{fs::File, path::Path};
 
+pub mod day_03;
+pub mod day_04;
+pub mod day_05;
+pub mod day_06;
+pub mod day_07;
+pub mod day_08;
+pub mod day_09;
 pub mod day_10;
 pub mod day_11;
 pub mod day_12;
-pub mod day_3;
-pub mod day_4;
-pub mod day_5;
-pub mod day_6;
-pub mod day_7;
-pub mod day_8;
-pub mod day_9;
+pub mod day_13;
 
 pub const INPUT_DIR: &str = "inputs";
 pub type Lines = BufReader<File>;
