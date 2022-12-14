@@ -26,3 +26,25 @@ pub fn input_file(name: &str) -> std::io::Result<File> {
 pub fn input_lines(name: &str) -> std::io::Result<Lines> {
 	Ok(Lines::new(input_file(name)?))
 }
+
+pub trait IntoContiguous<T> {
+	type Out;
+	fn into_contiguous(self, width: usize) -> Self::Out
+	where
+		T: Default;
+}
+
+impl<T> IntoContiguous<T> for Vec<Vec<T>> {
+	type Out = Vec<T>;
+	fn into_contiguous(self, width: usize) -> Self::Out
+	where
+		T: Default,
+	{
+		let mut out = Vec::with_capacity(self.len() * width);
+		for mut row in self {
+			assert_eq!(row.len(), width);
+			out.append(&mut row);
+		}
+		out
+	}
+}
