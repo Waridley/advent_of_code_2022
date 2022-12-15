@@ -192,7 +192,7 @@ impl Debug for Cave {
 				match space {
 					Empty => f.write_char(' ')?,
 					Wall => f.write_char('#')?,
-					Sand => f.write_char('o')?,
+					Sand => f.write_char('.')?,
 				}
 			}
 			f.write_char('\n')?
