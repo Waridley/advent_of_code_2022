@@ -10,7 +10,7 @@ pub fn eval_part_1(file: &str, row: isize) -> Result<usize> {
 		.map(|line| line.unwrap().parse::<Sensor>().unwrap())
 		.collect::<Vec<_>>();
 
-	let mut spans = spans_for_row(&sensors, row);
+	let mut spans = merge_spans(spans_for_row(&sensors, row).collect());
 
 	let mut beacons_in_row = HashSet::new();
 	for sensor in &sensors {
@@ -32,41 +32,74 @@ fn part_1() -> Result<()> {
 }
 
 pub fn eval_part_2(file: &str, range: isize) -> Result<isize> {
-	let sensors = input_lines(file)?
+	let sensors = &*input_lines(file)?
 		.lines()
 		.map(|line| line.unwrap().parse::<Sensor>().unwrap())
-		.collect::<Vec<_>>();
-
-	let mut searcher = (0..=range)
-		.map(|row| {
-			spans_for_row(&sensors, row)
-				.into_iter()
-				.map(|span| *span.start().max(&0)..=*span.end().min(&range))
-				.collect::<Vec<_>>()
-		})
-		.enumerate()
-		.flat_map(|(row, spans)| {
-			let mut i = 0;
-			loop {
-				let mut covered = false;
-				for span in spans.iter() {
-					if span.contains(&i) {
-						i = *span.end() + 1;
-						covered = true;
-						break;
+		.collect::<Vec<_>>()
+		.leak();
+	
+	let cpus = num_cpus::get();
+	
+	// could use num_cpus but then I'd have to add a dependency
+	let rows_per_thread = range / cpus as isize;
+	
+	let start = std::time::Instant::now();
+	let mut handles = (0..range)
+		.step_by(rows_per_thread as usize)
+		.map(|start| std::thread::spawn(move || {
+			(start..(start + rows_per_thread.min(range))).flat_map(|row| {
+				let spans = spans_for_row(&sensors, row)
+					.into_iter()
+					.map(|span| *span.start().max(&0)..=*span.end().min(&range))
+					.collect::<Vec<_>>();
+				let mut i = 0;
+				loop {
+					let mut covered = false;
+					for span in spans.iter() {
+						if span.contains(&i) {
+							i = *span.end() + 1;
+							covered = true;
+							break;
+						}
+					}
+					if !covered {
+						break Some((i, row as isize));
+					} else if i >= range {
+						break None;
 					}
 				}
-				if !covered {
-					break Some((i, row as isize));
-				} else if i >= range {
-					break None;
-				}
+			}).next()
+		})).collect::<Vec<_>>();
+	
+	let (x, y) = loop {
+		if handles.is_empty() { panic!("couldn't find beacon") };
+		let mut handle_index = None;
+		for (i, handle) in handles.iter().enumerate() {
+			if handle.is_finished() {
+				handle_index = Some(i);
+				break
 			}
-		});
-	let (x, y) = searcher.next().expect("didn't find position");
-	println!("Beacon: {{ {x}, {y} }}");
-	assert!(searcher.next().is_none());
-
+		};
+		if let Some(i) = handle_index {
+			if let Some(result) = handles.remove(i).join().unwrap() {
+				break result
+			}
+		}
+		std::thread::yield_now();
+	};
+	
+	let t = std::time::Instant::now().duration_since(start);
+	println!("Beacon: {{ {x}, {y} }}\nFound in {t:?}");
+	
+	assert!((0..=range).contains(&x));
+	assert!((0..=range).contains(&y));
+	
+	for handle in handles.drain(..) {
+		let result = handle.join().unwrap();
+		dbg!(result);
+		assert!(result.is_none());
+	}
+	
 	Ok(x * 4_000_000 + y)
 }
 
@@ -116,13 +149,12 @@ impl Sensor {
 	}
 }
 
-fn spans_for_row(sensors: &[Sensor], row: isize) -> Vec<RangeInclusive<isize>> {
-	let mut spans = sensors
-		.iter()
-		.flat_map(|sensor| sensor.span_for_row(row))
-		.collect::<Vec<_>>();
+fn spans_for_row(sensors: &[Sensor], row: isize) -> impl Iterator<Item = RangeInclusive<isize>> + '_ {
+	sensors.iter().flat_map(move |sensor| sensor.span_for_row(row))
+}
 
-	let mut buf = Vec::new();
+fn merge_spans(mut spans: Vec<RangeInclusive<isize>>) -> Vec<RangeInclusive<isize>> {
+	let mut buf = Vec::with_capacity(1);
 	while let Some(last) = spans.pop() {
 		buf.push(last);
 		let curr = buf.last_mut().unwrap();
